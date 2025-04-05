@@ -68,7 +68,7 @@ async def post_chat(agent_chat_request: AgentChatRequest):
 
         final_output = input_checks.final_output_as(TableBookingOutput)
 
-        if not final_output.is_table_booking:
+        if final_output.is_table_booking:
             result = Runner.run_streamed(
                 starting_agent=table_booking_agent, input=formatted_chat_history
             )
