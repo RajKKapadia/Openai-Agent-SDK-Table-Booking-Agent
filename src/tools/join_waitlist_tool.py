@@ -3,7 +3,7 @@ from random import random
 from agents import RunContextWrapper, FunctionTool
 from pydantic import BaseModel, Field
 
-from src.config import UserInfo
+from src.models.schemas import UserInfo
 
 
 class JoinWaitlistToolInput(BaseModel):

@@ -22,3 +22,12 @@ class AgentChatRequest(BaseModel):
 class AgentChatResponse(BaseModel):
     type: str
     content: str
+
+
+class TableBookingOutput(BaseModel):
+    is_table_booking: bool
+    reasoning: str
+
+
+class UserInfo(BaseModel):
+    uid: str

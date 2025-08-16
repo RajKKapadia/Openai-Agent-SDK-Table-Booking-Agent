@@ -3,29 +3,22 @@ from typing import List
 
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
-from agents import (
-    Agent,
-    ItemHelpers,
-    OpenAIResponsesModel,
-    Runner,
-    AsyncOpenAI,
-)
+from agents import ItemHelpers, Runner
 from openai.types.responses import ResponseTextDeltaEvent
-from openai import OpenAI
+from openai import OpenAI, AsyncOpenAI
 
-from src.models.schemas import AgentChatRequest, ChatHistory
+from src.custom_agents import table_booking_agent
+from src.models.schemas import AgentChatRequest, ChatHistory, AgentChatResponse
 from src import config
-from src.tools.current_date_tool import fetch_current_date_time
-from src.tools.table_availability_tool import FetchTableAvailabilityTool
-from src.tools.save_booking_tool import SaveBookingTool
-from src.tools.join_waitlist_tool import JoinWaitlistTool
-from src.utils.guard_rail import TableBookingOutput, guardrail_agent
+from src.custom_agents.guard_rail_agent import guardrail_agent
+from src.models.schemas import TableBookingOutput, UserInfo
+from src.utils.prompts import GAURDRAIL_FAIL_PROMPT
 
 
 router = APIRouter(prefix=f"/api/{config.API_VERSION}/agent", tags=["AGENT"])
 
-
 client = OpenAI(api_key=config.OPENAI_API_KEY)
+async_client = AsyncOpenAI(api_key=config.OPENAI_API_KEY)
 
 
 def format_chat_history(
@@ -39,26 +32,8 @@ def format_chat_history(
     return formatted_messages
 
 
-"""Agent"""
-table_booking_agent = Agent[config.UserInfo](
-    name="Table Booking Agent",
-    tools=[
-        fetch_current_date_time,
-        FetchTableAvailabilityTool,
-        SaveBookingTool,
-        JoinWaitlistTool,
-    ],
-    model=OpenAIResponsesModel(
-        model=config.OPENAI_AGENT_MODEL,
-        openai_client=AsyncOpenAI(api_key=config.OPENAI_API_KEY),
-    ),
-    instructions="""You are an AI agent to helps users book tables at restaurants and provide information about restraurants.
-Never assume any value, try to use the tools otherwise always ask for clarity if the request is ambiguous.""",
-)
-
-
-@router.post("/chat", response_model=None)
-async def post_chat(agent_chat_request: AgentChatRequest):
+@router.post("/chat/stream", response_model=None)
+async def handle_post_chat_stream(agent_chat_request: AgentChatRequest):
     formatted_chat_history = format_chat_history(agent_chat_request=agent_chat_request)
 
     async def generate():
@@ -70,7 +45,9 @@ async def post_chat(agent_chat_request: AgentChatRequest):
 
         if final_output.is_table_booking:
             result = Runner.run_streamed(
-                starting_agent=table_booking_agent, input=formatted_chat_history
+                starting_agent=table_booking_agent,
+                input=formatted_chat_history,
+                context=UserInfo(uid=agent_chat_request.user_id),
             )
 
             async for event in result.stream_events():
@@ -120,8 +97,9 @@ async def post_chat(agent_chat_request: AgentChatRequest):
                 messages=[
                     {
                         "role": "user",
-                        "content": f"""You are a helpful assistant, polietly say that you can't answer {agent_chat_request.query} because it is out of scope, you can only answer about 
-                restaurant and table booking at a restaurant.""",
+                        "content": GAURDRAIL_FAIL_PROMPT.format(
+                            query=agent_chat_request.query
+                        ),
                     },
                 ],
                 stream=True,
@@ -136,3 +114,37 @@ async def post_chat(agent_chat_request: AgentChatRequest):
                     )
 
     return StreamingResponse(generate(), media_type="application/json")
+
+
+@router.post("/chat", response_model=AgentChatResponse)
+async def handle_post_chat(agent_chat_request: AgentChatRequest):
+    formatted_chat_history = format_chat_history(agent_chat_request=agent_chat_request)
+
+    input_checks = await Runner.run(
+        starting_agent=guardrail_agent, input=formatted_chat_history
+    )
+
+    final_output = input_checks.final_output_as(TableBookingOutput)
+
+    if final_output.is_table_booking:
+        result = await Runner.run(
+            starting_agent=table_booking_agent,
+            input=formatted_chat_history,
+            context=UserInfo(uid=agent_chat_request.user_id),
+        )
+        return AgentChatResponse(type="text", content=result.final_output)
+    else:
+        completion = await async_client.chat.completions.create(
+            model=config.OPENAI_AGENT_MODEL,
+            messages=[
+                {
+                    "role": "user",
+                    "content": GAURDRAIL_FAIL_PROMPT.format(
+                        query=agent_chat_request.query
+                    ),
+                },
+            ],
+        )
+        return AgentChatResponse(
+            type="text", content=completion.choices[0].message.content
+        )

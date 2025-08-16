@@ -3,7 +3,7 @@ from random import random
 from agents import FunctionTool, RunContextWrapper
 from pydantic import BaseModel, Field
 
-from src.config import UserInfo
+from src.models.schemas import UserInfo
 
 
 class SaveBookingToolInput(BaseModel):
