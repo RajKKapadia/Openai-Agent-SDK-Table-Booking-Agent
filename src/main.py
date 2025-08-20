@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src.routes import health_route
 from src.routes import agent_route
+from src.routes import whatsapp_route
 from src import config
 
 app = FastAPI(
@@ -21,3 +22,4 @@ app.add_middleware(
 
 app.include_router(health_route.router)
 app.include_router(agent_route.router)
+app.include_router(whatsapp_route.router)
