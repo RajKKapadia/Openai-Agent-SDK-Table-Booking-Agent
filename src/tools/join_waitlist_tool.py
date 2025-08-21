@@ -4,6 +4,9 @@ from agents import RunContextWrapper, FunctionTool
 from pydantic import BaseModel, Field
 
 from src.schemas.schemas import UserInfo
+from src import logging
+
+logger = logging.getLogger(__name__)
 
 
 class JoinWaitlistToolInput(BaseModel):
@@ -20,6 +23,9 @@ async def join_waitlist(
 ) -> str:
     """Add a customer to the waiting list for a restaurant"""
     # In a real implementation, this would call an API to add to waitlist
+    logger.info("Inside the Join Waitlist.")
+    logger.info(args)
+    logger.info(ctx)
     waitlist_position = int(random() * 10) + 1
     return f"""Added {args.customer_name} to the waitlist for {args.restaurant_name} on {args.date} at {args.time}. You are currently position #{waitlist_position} on 
     the waitlist. We'll contact you at {args.customer_phone} if a table becomes available."""

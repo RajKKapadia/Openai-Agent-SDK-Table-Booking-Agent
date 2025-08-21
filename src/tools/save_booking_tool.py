@@ -4,6 +4,9 @@ from agents import FunctionTool, RunContextWrapper
 from pydantic import BaseModel, Field
 
 from src.schemas.schemas import UserInfo
+from src import logging
+
+logger = logging.getLogger(__name__)
 
 
 class SaveBookingToolInput(BaseModel):
@@ -22,6 +25,9 @@ async def save_booking(
 ) -> str:
     """Save a confirmed booking to the reservation system"""
     # In a real implementation, this would call an API to create the booking
+    logger.info("Inside the Save Booking.")
+    logger.info(args)
+    logger.info(ctx)
     booking_id = int(random() * 10000)
     return f"""Booking confirmed at {args.restaurant_name} for {args.customer_name} on {args.date} at {args.time} for {args.number_of_person} people. Your booking reference 
     is #{booking_id}."""
@@ -35,7 +41,7 @@ async def run_save_booking(ctx: RunContextWrapper[UserInfo], args: str) -> str:
 
 SaveBookingTool = FunctionTool(
     name="save_booking",
-    description="Save a confirmed booking at a restaurant.",
+    description="Confirm and save the booking at the restaurant.",
     params_json_schema=SaveBookingToolInput.model_json_schema(),
     on_invoke_tool=run_save_booking,
     strict_json_schema=False,

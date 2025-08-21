@@ -1,10 +1,12 @@
 from typing import List
-from random import random
 
 from agents import FunctionTool, RunContextWrapper
 from pydantic import BaseModel, Field
 
 from src.schemas.schemas import UserInfo
+from src import logging
+
+logger = logging.getLogger(__name__)
 
 
 class FetchTableAvailabilityToolInput(BaseModel):
@@ -24,10 +26,10 @@ async def fetch_table_availability(
     ctx: RunContextWrapper[UserInfo], args: FetchTableAvailabilityToolInput
 ) -> str:
     """Call the actual API here"""
-    if random() > 0.5:
-        return f"We have seats available at {args.restaurant_name} for {args.date}. Do you want to go ahead and book the table?"
-    else:
-        return f"We don't have seats available at {args.restaurant_name} for {args.date}. Do you want me to put you in waiting list?"
+    logger.info("Inside the Fetch Table Availability.")
+    logger.info(args)
+    logger.info(ctx)
+    return f"We have seats available at {args.restaurant_name} for {args.date}."
 
 
 async def run_fetch_table_availability(
