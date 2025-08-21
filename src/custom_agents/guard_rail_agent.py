@@ -2,7 +2,7 @@ from agents import Agent, OpenAIResponsesModel
 from openai import AsyncOpenAI
 
 from src import config
-from src.models.schemas import TableBookingOutput
+from src.schemas.schemas import TableBookingOutput
 from src.utils.prompts import GAURDRAIL_PROMPT
 
 

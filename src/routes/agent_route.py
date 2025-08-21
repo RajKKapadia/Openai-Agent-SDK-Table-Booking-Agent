@@ -8,10 +8,10 @@ from openai.types.responses import ResponseTextDeltaEvent
 from openai import OpenAI, AsyncOpenAI
 
 from src.custom_agents import table_booking_agent
-from src.models.schemas import AgentChatRequest, ChatHistory, AgentChatResponse
+from src.schemas.schemas import AgentChatRequest, ChatHistory, AgentChatResponse
 from src import config
 from src.custom_agents.guard_rail_agent import guardrail_agent
-from src.models.schemas import TableBookingOutput, UserInfo
+from src.schemas.schemas import TableBookingOutput, UserInfo
 from src.utils.prompts import GAURDRAIL_FAIL_PROMPT
 
 
