@@ -20,7 +20,7 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 API_VERSION = "v0"
 
 OPENAI_AGENT_MODEL = "gpt-4.1-mini"
-OPENAI_GUARDRAIL_MODEL = "gpt-4.1-nano"
+OPENAI_GUARDRAIL_MODEL = "gpt-4.1-mini"
 
 ERROR_MESSAGE = "We are facing an issue, please try after sometimes."
 

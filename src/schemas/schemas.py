@@ -1,6 +1,6 @@
 from typing import List
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class HealthResponse(BaseModel):
@@ -15,8 +15,8 @@ class ChatHistory(BaseModel):
 
 class AgentChatRequest(BaseModel):
     query: str
-    chat_history: List[ChatHistory] = []
-    user_id: str
+    chat_history: List[ChatHistory] = Field(default_factory=list, alias=["chatHistory"])
+    user_id: str = Field(alias=["userId"])
 
 
 class AgentChatResponse(BaseModel):

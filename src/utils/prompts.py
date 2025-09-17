@@ -1,4 +1,4 @@
-GAURDRAIL_PROMPT = "Check if the user is saying hi or asking you about restaurant and table booking at a restaurant."
+GAURDRAIL_PROMPT = "Check if the user is greeting or asking you about restaurant and table booking at a restaurant."
 
 TABLE_BOOKING_AGENT_PROMPT = """You are an AI agent, you can greet and help users book tables at restaurants and provide information about restraurants.
 Never assume any value, try to use the tools otherwise always ask for clarity if the request is ambiguous."""
